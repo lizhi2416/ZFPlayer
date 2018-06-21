@@ -707,16 +707,16 @@
         }
     };
     
-    scrollView.playerDisappearHalfInScrollView = ^(NSIndexPath * _Nonnull indexPath) {
-        @strongify(self)
-        if (self.isFullScreen) return;
-        if ([self.controlView respondsToSelector:@selector(playerDisappearHalfInScrollView:)]) {
-            [self.controlView playerDisappearHalfInScrollView:self];
-        }
-        if (self.stopWhileNotVisible) {
-            [self stopCurrentPlayingCell];
-        }
-    };
+//    scrollView.playerDisappearHalfInScrollView = ^(NSIndexPath * _Nonnull indexPath) {
+//        @strongify(self)
+//        if (self.isFullScreen) return;
+//        if ([self.controlView respondsToSelector:@selector(playerDisappearHalfInScrollView:)]) {
+//            [self.controlView playerDisappearHalfInScrollView:self];
+//        }
+//        if (self.stopWhileNotVisible) {
+//            [self stopCurrentPlayingCell];
+//        }
+//    };
     
     scrollView.playerDidDisappearInScrollView = ^(NSIndexPath * _Nonnull indexPath) {
         @strongify(self)

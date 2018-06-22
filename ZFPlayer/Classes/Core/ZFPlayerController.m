@@ -81,7 +81,6 @@
 }
 
 - (void)dealloc {
-    [self.notification removeNotification];
     [self.currentPlayerManager stop];
 }
 

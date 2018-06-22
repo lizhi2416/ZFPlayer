@@ -81,6 +81,7 @@
 }
 
 - (void)dealloc {
+    [self.notification removeNotification];
     [self.currentPlayerManager stop];
 }
 
@@ -259,7 +260,7 @@
 @implementation ZFPlayerController (ZFPlayerPlaybackControl)
 
 - (void)stop {
-    [self.notification removeNotification];
+//    [self.notification removeNotification];
     [self.orientationObserver removeDeviceOrientationObserver];
     [self.currentPlayerManager stop];
     [self.currentPlayerManager.view removeFromSuperview];

@@ -81,10 +81,23 @@ static NSString *kIdentifier = @"kIdentifier";
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     @weakify(self)
-    [self.tableView zf_filterShouldPlayCellWhileScrolled:^(NSIndexPath *indexPath) {
+    [self.tableView zf_filterShouldPlayCellWhileScrolled:^(NSIndexPath * _Nonnull indexPath, BOOL WWANTip) {
         @strongify(self)
-         [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+        if (WWANTip) {
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"非WIFI环境" message:nil preferredStyle:UIAlertControllerStyleAlert];
+            [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+            [alert addAction:[UIAlertAction actionWithTitle:@"继续播放" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+            }]];
+            [self presentViewController:alert animated:YES completion:nil];
+        }else {
+            [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+        }
     }];
+//    [self.tableView zf_filterShouldPlayCellWhileScrolled:^(NSIndexPath *indexPath) {
+//        @strongify(self)
+//         [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+//    }];
     ZFTableViewCell *cell = [self.tableView cellForRowAtIndexPath:self.tableView.shouldPlayIndexPath];
     [cell hideMaskView];
 }
@@ -159,7 +172,7 @@ static NSString *kIdentifier = @"kIdentifier";
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     @weakify(self)
-    [scrollView zf_filterShouldPlayCellWhileScrolling:^(NSIndexPath *indexPath) {
+    [scrollView zf_filterShouldPlayCellWhileScrolling:^(NSIndexPath * _Nonnull indexPath, BOOL WWANTip) {
         if ([indexPath compare:self.tableView.shouldPlayIndexPath] != NSOrderedSame) {
             @strongify(self)
             /// 显示黑色蒙版
@@ -170,6 +183,17 @@ static NSString *kIdentifier = @"kIdentifier";
             [cell hideMaskView];
         }
     }];
+//    [scrollView zf_filterShouldPlayCellWhileScrolling:^(NSIndexPath *indexPath) {
+//        if ([indexPath compare:self.tableView.shouldPlayIndexPath] != NSOrderedSame) {
+//            @strongify(self)
+//            /// 显示黑色蒙版
+//            ZFTableViewCell *cell1 = [self.tableView cellForRowAtIndexPath:self.tableView.shouldPlayIndexPath];
+//            [cell1 showMaskView];
+//            /// 隐藏黑色蒙版
+//            ZFTableViewCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
+//            [cell hideMaskView];
+//        }
+//    }];
 }
 
 #pragma mark - private method
@@ -210,10 +234,23 @@ static NSString *kIdentifier = @"kIdentifier";
         }
         /// 停止的时候找出最合适的播放
         @weakify(self)
-        _tableView.scrollViewDidStopScroll = ^(NSIndexPath * _Nonnull indexPath) {
+        _tableView.scrollViewDidStopScroll = ^(NSIndexPath * _Nonnull indexPath, BOOL WWANTip) {
             @strongify(self)
-            [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+            if (WWANTip) {
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"非WIFI环境" message:nil preferredStyle:UIAlertControllerStyleAlert];
+                [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+                [alert addAction:[UIAlertAction actionWithTitle:@"继续播放" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+                }]];
+                [self presentViewController:alert animated:YES completion:nil];
+            }else {
+                [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+            }
         };
+//        _tableView.scrollViewDidStopScroll = ^(NSIndexPath * _Nonnull indexPath) {
+//            @strongify(self)
+//            [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+//        };
     }
     return _tableView;
 }

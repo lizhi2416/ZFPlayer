@@ -84,10 +84,23 @@ static NSString *kIdentifier = @"kIdentifier";
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     @weakify(self)
-    [self.tableView zf_filterShouldPlayCellWhileScrolled:^(NSIndexPath *indexPath) {
+    [self.tableView zf_filterShouldPlayCellWhileScrolled:^(NSIndexPath * _Nonnull indexPath, BOOL WWANTip) {
         @strongify(self)
-        [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+        if (WWANTip) {
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"非WIFI环境" message:nil preferredStyle:UIAlertControllerStyleAlert];
+            [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+            [alert addAction:[UIAlertAction actionWithTitle:@"继续播放" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+            }]];
+            [self presentViewController:alert animated:YES completion:nil];
+        }else {
+            [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+        }
     }];
+//    [self.tableView zf_filterShouldPlayCellWhileScrolled:^(NSIndexPath *indexPath) {
+//        @strongify(self)
+//        [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+//    }];
 }
 
 - (void)requestData {
@@ -186,10 +199,23 @@ static NSString *kIdentifier = @"kIdentifier";
         }
         /// 停止的时候找出最合适的播放
         @weakify(self)
-        _tableView.scrollViewDidStopScroll = ^(NSIndexPath * _Nonnull indexPath) {
+        _tableView.scrollViewDidStopScroll = ^(NSIndexPath * _Nonnull indexPath, BOOL WWANTip) {
             @strongify(self)
-            [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+            if (WWANTip) {
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"非WIFI环境" message:nil preferredStyle:UIAlertControllerStyleAlert];
+                [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+                [alert addAction:[UIAlertAction actionWithTitle:@"继续播放" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+                }]];
+                [self presentViewController:alert animated:YES completion:nil];
+            }else {
+                [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+            }
         };
+//        _tableView.scrollViewDidStopScroll = ^(NSIndexPath * _Nonnull indexPath) {
+//            @strongify(self)
+//            [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+//        };
     }
     return _tableView;
 }

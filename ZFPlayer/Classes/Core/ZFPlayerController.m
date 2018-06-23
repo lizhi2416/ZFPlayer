@@ -332,8 +332,8 @@
 - (BOOL)isWWANAutoPlay {
     NSNumber *number = objc_getAssociatedObject(self, _cmd);
     if (number) return number.boolValue;
-    self.WWANAutoPlay = YES;
-    return YES;
+    self.WWANAutoPlay = NO;
+    return NO;
 }
 
 - (float)brightness {

@@ -170,9 +170,9 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
 - (void)zf_scrollViewStopScroll {
     if (!self.enableScrollHook) return;
     @weakify(self)
-    [self zf_filterShouldPlayCellWhileScrolled:^(NSIndexPath * _Nonnull indexPath) {
+    [self zf_filterShouldPlayCellWhileScrolled:^(NSIndexPath * _Nonnull indexPath, BOOL WWANTip) {
         @strongify(self)
-        if (self.scrollViewDidStopScroll) self.scrollViewDidStopScroll(indexPath);
+        if (self.scrollViewDidStopScroll) self.scrollViewDidStopScroll(indexPath, WWANTip);
     }];
 }
 
@@ -237,19 +237,20 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
     }
 }
 
-- (void)zf_filterShouldPlayCellWhileScrolling:(void (^ __nullable)(NSIndexPath *indexPath))handler {
+- (void)zf_filterShouldPlayCellWhileScrolling:(ScrollViewDidStopScrollBlock)handler {
     if (!self.shouldAutoPlay) return;
-    if ([ZFReachabilityManager sharedManager].isReachableViaWWAN && !self.WWANAutoPlay) return;
+//    if ([ZFReachabilityManager sharedManager].isReachableViaWWAN && !self.WWANAutoPlay) return;
     NSArray *cellsArray = nil;
     NSArray *visiableCells = nil;
     NSIndexPath *indexPath = nil;
+    BOOL WWANTip = ([ZFReachabilityManager sharedManager].isReachableViaWWAN && !self.WWANAutoPlay);
     if ([self isKindOfClass:[UITableView class]]) {
         UITableView *tableView = (UITableView *)self;
         visiableCells = [tableView visibleCells];
         // Top
         indexPath = tableView.indexPathsForVisibleRows.firstObject;
         if (self.contentOffset.y <= 0 && (!self.playingIndexPath || [indexPath compare:self.playingIndexPath] == NSOrderedSame)) {
-            if (handler) handler(indexPath);
+            if (handler) handler(indexPath, WWANTip);
             self.shouldPlayIndexPath = indexPath;
             return;
         }
@@ -257,7 +258,7 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
         // Bottom
         indexPath = tableView.indexPathsForVisibleRows.lastObject;
         if (self.contentOffset.y + self.frame.size.height >= self.contentSize.height && (!self.playingIndexPath || [indexPath compare:self.playingIndexPath] == NSOrderedSame)) {
-            if (handler) handler(indexPath);
+            if (handler) handler(indexPath, WWANTip);
             self.shouldPlayIndexPath = indexPath;
             return;
         }
@@ -267,7 +268,7 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
         // Top
         indexPath = collectionView.indexPathsForVisibleItems.firstObject;
         if (self.contentOffset.y <= 0 && (!self.playingIndexPath || [indexPath compare:self.playingIndexPath] == NSOrderedSame)) {
-            if (handler) handler(indexPath);
+            if (handler) handler(indexPath, WWANTip);
             self.shouldPlayIndexPath = indexPath;
             return;
         }
@@ -275,7 +276,7 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
         // Bottom
         indexPath = collectionView.indexPathsForVisibleItems.lastObject;
         if (self.contentOffset.y + self.frame.size.height >= self.contentSize.height && (!self.playingIndexPath || [indexPath compare:self.playingIndexPath] == NSOrderedSame)) {
-            if (handler) handler(indexPath);
+            if (handler) handler(indexPath, WWANTip);
             self.shouldPlayIndexPath = indexPath;
             return;
         }
@@ -299,22 +300,21 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
             if (self.playingIndexPath) {
                 indexPath = self.playingIndexPath;
             }
-            if (handler) handler(indexPath);
+            if (handler) handler(indexPath, WWANTip);
             self.shouldPlayIndexPath = indexPath;
             *stop = YES;
         }
     }];
 }
 
-- (void)zf_filterShouldPlayCellWhileScrolled:(void (^ __nullable)(NSIndexPath *indexPath))handler {
+- (void)zf_filterShouldPlayCellWhileScrolled:(ScrollViewDidStopScrollBlock)handler {
     if (!self.shouldAutoPlay) return;
-    if ([ZFReachabilityManager sharedManager].isReachableViaWWAN && !self.WWANAutoPlay) return;
+//    if ([ZFReachabilityManager sharedManager].isReachableViaWWAN && !self.WWANAutoPlay) return;
     @weakify(self)
-    [self zf_filterShouldPlayCellWhileScrolling:^(NSIndexPath *indexPath) {
+    [self zf_filterShouldPlayCellWhileScrolling:^(NSIndexPath * _Nonnull indexPath, BOOL WWANTip) {
         @strongify(self)
-        if ([ZFReachabilityManager sharedManager].isReachableViaWWAN) return;
         if (!self.playingIndexPath) {
-            if (handler) handler(indexPath);
+            if (handler) handler(indexPath, WWANTip);
             self.playingIndexPath = indexPath;
         }
     }];
@@ -417,7 +417,7 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
     return objc_getAssociatedObject(self, _cmd);
 }
 
-- (void (^)(NSIndexPath * _Nonnull))scrollViewDidStopScroll {
+- (ScrollViewDidStopScrollBlock)scrollViewDidStopScroll {
     return objc_getAssociatedObject(self, _cmd);
 }
 
@@ -479,7 +479,7 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
     objc_setAssociatedObject(self, @selector(playerDidDisappearInScrollView), playerDidDisappearInScrollView, OBJC_ASSOCIATION_COPY_NONATOMIC);
 }
 
-- (void)setScrollViewDidStopScroll:(void (^)(NSIndexPath * _Nonnull))scrollViewDidStopScroll {
+- (void)setScrollViewDidStopScroll:(ScrollViewDidStopScrollBlock)scrollViewDidStopScroll {
     objc_setAssociatedObject(self, @selector(scrollViewDidStopScroll), scrollViewDidStopScroll, OBJC_ASSOCIATION_COPY_NONATOMIC);
 }
 

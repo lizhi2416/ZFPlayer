@@ -35,6 +35,8 @@ typedef NS_ENUM(NSUInteger, ZFPlayerScrollDerection) {
     ZFPlayerScrollDerectionDown = 2   // Scroll Down
 };
 
+typedef void(^ScrollViewDidStopScrollBlock)(NSIndexPath *indexPath, BOOL WWANTip);
+
 @interface UIScrollView (ZFPlayer)
 
 /// Rolling direction switch
@@ -77,13 +79,13 @@ typedef NS_ENUM(NSUInteger, ZFPlayerScrollDerection) {
 @property (nonatomic, copy, nullable) void(^playerDidDisappearInScrollView)(NSIndexPath *indexPath);
 
 /// The block invoked When the player did stop scroll.
-@property (nonatomic, copy, nullable) void(^scrollViewDidStopScroll)(NSIndexPath *indexPath);
+@property (nonatomic, copy, nullable) ScrollViewDidStopScrollBlock scrollViewDidStopScroll;
 
 /// Filter the cell that should be played when the scroll is stopped (to play when the scroll is stopped)
-- (void)zf_filterShouldPlayCellWhileScrolled:(void (^ __nullable)(NSIndexPath *indexPath))handler;
+- (void)zf_filterShouldPlayCellWhileScrolled:(ScrollViewDidStopScrollBlock)handler;
 
 /// Filter the cell that should be played while scrolling (you can use this to filter the highlighted cell)
-- (void)zf_filterShouldPlayCellWhileScrolling:(void (^ __nullable)(NSIndexPath *indexPath))handler;
+- (void)zf_filterShouldPlayCellWhileScrolling:(ScrollViewDidStopScrollBlock)handler;
 
 /// Get the cell according to indexPath
 - (UIView *)zf_getCellForIndexPath:(NSIndexPath *)indexPath;

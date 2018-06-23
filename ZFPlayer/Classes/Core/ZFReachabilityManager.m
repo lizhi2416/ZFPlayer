@@ -175,7 +175,11 @@ static void ZFReachabilityReleaseCallback(const void *info) {
     }
     _networkReachability = CFRetain(reachability);
     self.networkReachabilityStatus = ZFReachabilityStatusUnknown;
-
+    SCNetworkReachabilityFlags flags;
+    BOOL didRetrieveFlags = SCNetworkReachabilityGetFlags(reachability, &flags);
+    if (didRetrieveFlags) {
+        self.networkReachabilityStatus = ZFReachabilityStatusForFlags(flags);
+    }
     return self;
 }
 

@@ -66,6 +66,7 @@ static NSString *kIdentifier = @"kIdentifier";
             UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"非WIFI环境" message:nil preferredStyle:UIAlertControllerStyleAlert];
             [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
             [alert addAction:[UIAlertAction actionWithTitle:@"继续播放" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                self.player.WWANAutoPlay = YES;
                 [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
             }]];
             [self presentViewController:alert animated:YES completion:nil];
@@ -178,6 +179,7 @@ static NSString *kIdentifier = @"kIdentifier";
                 UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"非WIFI环境" message:nil preferredStyle:UIAlertControllerStyleAlert];
                 [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
                 [alert addAction:[UIAlertAction actionWithTitle:@"继续播放" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    self.player.WWANAutoPlay = YES;
                     [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
                 }]];
                 [self presentViewController:alert animated:YES completion:nil];

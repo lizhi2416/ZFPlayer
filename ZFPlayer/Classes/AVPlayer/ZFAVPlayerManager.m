@@ -95,7 +95,7 @@ static NSString *const kPresentationSize         = @"presentationSize";
 #pragma mark -
 
 - (void)presentSetupView {
-    self.backgroundColor = [UIColor blackColor];
+//    self.backgroundColor = [UIColor blackColor];防止会黑屏一下
     [self addSubview:self.placeholderImageView];
     self.placeholderImageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 }

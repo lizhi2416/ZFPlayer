@@ -23,7 +23,6 @@
 // THE SOFTWARE.
 
 #import "ZFLoadingView.h"
-#import "ZFNetworkSpeedMonitor.h"
 #import "UIView+ZFFrame.h"
 #if __has_include(<ZFPlayer/ZFPlayer.h>)
 #import <ZFPlayer/ZFPlayer.h>
@@ -191,8 +190,6 @@
 
 @interface ZFSpeedLoadingView ()
 
-@property (nonatomic, strong) ZFNetworkSpeedMonitor *speedMonitor;
-
 @end
 
 @implementation ZFSpeedLoadingView
@@ -220,7 +217,6 @@
 - (void)initialize {
     [self addSubview:self.loadingView];
     [self addSubview:self.speedTextLabel];
-    [self.speedMonitor startSpeedMonitor];
 }
 
 - (void)layoutSubviews {
@@ -266,18 +262,6 @@
         _speedTextLabel.textAlignment = NSTextAlignmentCenter;
     }
     return _speedTextLabel;
-}
-
-- (ZFNetworkSpeedMonitor *)speedMonitor {
-    if (!_speedMonitor) {
-        _speedMonitor = [[ZFNetworkSpeedMonitor alloc] init];
-        @weakify(self)
-        [_speedMonitor networkSpeedChangeBlock:^(NSString *downloadSpped) {
-            @strongify(self)
-            self.speedTextLabel.text = downloadSpped;
-        }];
-    }
-    return _speedMonitor;
 }
 
 - (ZFLoadingView *)loadingView {

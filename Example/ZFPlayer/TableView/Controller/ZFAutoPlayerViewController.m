@@ -1,26 +1,27 @@
 //
-//  ZFNotAutoPlayViewController.m
+//  ZFAutoPlayerViewController.m
 //  ZFPlayer
 //
 //  Created by 任子丰 on 2018/4/1.
 //  Copyright © 2018年 紫枫. All rights reserved.
 //
 
-#import "ZFNotAutoPlayViewController.h"
+#import "ZFAutoPlayerViewController.h"
 #import <ZFPlayer/ZFPlayer.h>
 #import <ZFPlayer/ZFAVPlayerManager.h>
-#import <ZFPlayer/ZFPlayerControlView.h>
 #import <ZFPlayer/KSMediaPlayerManager.h>
+#import <ZFPlayer/ZFPlayerControlView.h>
 #import "ZFTableViewCell.h"
 #import "ZFTableData.h"
 
 static NSString *kIdentifier = @"kIdentifier";
 
-@interface ZFNotAutoPlayViewController () <UITableViewDelegate,UITableViewDataSource,ZFTableViewCellDelegate>
+@interface ZFAutoPlayerViewController () <UITableViewDelegate,UITableViewDataSource,ZFTableViewCellDelegate>
 
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) ZFPlayerController *player;
 @property (nonatomic, strong) ZFPlayerControlView *controlView;
+
 @property (nonatomic, strong) ZFAVPlayerManager *playerManager;
 
 @property (nonatomic, assign) NSInteger count;
@@ -31,30 +32,24 @@ static NSString *kIdentifier = @"kIdentifier";
 
 @end
 
-@implementation ZFNotAutoPlayViewController
+@implementation ZFAutoPlayerViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
+
     [self.view addSubview:self.tableView];
     [self requestData];
     
     /// playerManager
     self.playerManager = [[ZFAVPlayerManager alloc] init];
-    
-    /// player
+
+    /// player,tag值必须在cell里设置
     self.player = [ZFPlayerController playerWithScrollView:self.tableView playerManager:self.playerManager containerViewTag:100];
     self.player.controlView = self.controlView;
     self.player.assetURLs = self.urls;
-    self.player.shouldAutoPlay = NO;
     
     @weakify(self)
-    self.player.orientationWillChange = ^(ZFPlayerController * _Nonnull player, BOOL isFullScreen) {
-        @strongify(self)
-        [self setNeedsStatusBarAppearanceUpdate];
-        self.tableView.scrollsToTop = !isFullScreen;
-    };
-    
     self.player.playerDidToEnd = ^(id  _Nonnull asset) {
         @strongify(self)
         if (self.player.playingIndexPath.row < self.urls.count - 1 && !self.player.isFullScreen) {
@@ -66,6 +61,12 @@ static NSString *kIdentifier = @"kIdentifier";
                 [self.player stopCurrentPlayingCell];
             });
         }
+    };
+    
+    self.player.orientationWillChange = ^(ZFPlayerController * _Nonnull player, BOOL isFullScreen) {
+        @strongify(self)
+        [self setNeedsStatusBarAppearanceUpdate];
+        self.tableView.scrollsToTop = !isFullScreen;
     };
 }
 
@@ -189,6 +190,25 @@ static NSString *kIdentifier = @"kIdentifier";
         } else {
             self.automaticallyAdjustsScrollViewInsets = NO;
         }
+        /// 停止的时候找出最合适的播放
+        @weakify(self)
+        _tableView.scrollViewDidStopScroll = ^(NSIndexPath * _Nonnull indexPath, BOOL WWANTip) {
+            @strongify(self)
+            if (WWANTip) {
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"非WIFI环境" message:nil preferredStyle:UIAlertControllerStyleAlert];
+                [alert addAction:[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil]];
+                [alert addAction:[UIAlertAction actionWithTitle:@"继续播放" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+                }]];
+                [self presentViewController:alert animated:YES completion:nil];
+            }else {
+                [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+            }
+        };
+//        _tableView.scrollViewDidStopScroll = ^(NSIndexPath * _Nonnull indexPath) {
+//            @strongify(self)
+//            [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+//        };
     }
     return _tableView;
 }

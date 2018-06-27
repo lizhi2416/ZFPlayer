@@ -364,8 +364,8 @@ static NSString *const kPresentationSize         = @"presentationSize";
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
     dispatch_async(dispatch_get_main_queue(), ^{
          if ([keyPath isEqualToString:kStatus]) {
+             [self->_playerItemKVO safelyRemoveObserver:self forKeyPath:kStatus];
              if (self.player.currentItem.status == AVPlayerItemStatusReadyToPlay) {
-                 [self->_playerItemKVO safelyRemoveObserver:self forKeyPath:kStatus];
                  self.loadState = ZFPlayerLoadStatePlaythroughOK;
                  if (self.seekTime) [self seekToTime:self.seekTime completionHandler:nil];
                  [self play];

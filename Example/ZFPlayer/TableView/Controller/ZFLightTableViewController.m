@@ -167,7 +167,7 @@ static NSString *kIdentifier = @"kIdentifier";
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     @weakify(self)
     [scrollView zf_filterShouldPlayCellWhileScrolling:^(NSIndexPath * _Nonnull indexPath, BOOL WWANTip) {
-        if ([indexPath compare:self.tableView.shouldPlayIndexPath] != NSOrderedSame) {
+        if ([indexPath compare:self.tableView.zf_shouldPlayIndexPath] != NSOrderedSame) {
             @strongify(self)
             /// 显示黑色蒙版
             ZFTableViewCell *cell1 = [self.tableView cellForRowAtIndexPath:self.tableView.zf_shouldPlayIndexPath];

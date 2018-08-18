@@ -169,6 +169,9 @@ static NSString *const kPresentationSize         = @"presentationSize";
 }
 
 - (void)play {
+    if (self.view.window==nil) {//防止界面未显示播放
+        return;
+    }
     if (!_isPreparedToPlay) {
         [self prepareToPlay];
     } else {

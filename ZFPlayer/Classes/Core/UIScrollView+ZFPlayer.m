@@ -200,6 +200,12 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
             return;
         }
         UIView *playerView = [cell viewWithTag:self.zf_containerViewTag];
+        
+        //        if (![self isShowInAvailableZoneWithPlayerView:playerView]) {
+        //            if (self.zf_playerDidDisappearInScrollView) self.zf_playerDidDisappearInScrollView(self.zf_playingIndexPath);
+        //            return;
+        //        }
+        
         CGRect rect1 = [playerView convertRect:playerView.frame toView:self];
         CGRect rect = [self convertRect:rect1 toView:self.superview];
         CGFloat topSpacing = rect.origin.y - CGRectGetMinY(self.frame) - CGRectGetMinY(playerView.frame) - self.contentInset.bottom;
@@ -316,7 +322,17 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
         cellsArray = [visiableCells reverseObjectEnumerator].allObjects;
     }
     /// 中线
+    if (self.window==nil) {
+        return;
+    }
+//    CGRect scrollWindowFrame = [self convertRect:self.frame toView:self.window];
     CGFloat scrollViewMidY = (CGRectGetHeight(self.frame) - self.contentInset.top - self.contentInset.bottom)/2;
+    //    if (!CGRectIsEmpty(self.zf_containerViewFrame) && !CGRectIsNull(self.zf_containerViewFrame)) {
+    //        if (scrollWindowFrame.origin.y>self.zf_containerViewFrame.origin.y) {//如果底部还有scrollview并且导致self在window上下移，则需要改变中线位置，否则会出现寻找出错问题,例如个人主页动态或者附近动态
+    //            scrollViewMidY -= scrollWindowFrame.origin.y/2.0;
+    //        }
+    //    }
+    
     /// 最终播放的indexPath
     __block NSIndexPath *finalIndexPath = nil;
     /// 最终距离中线的间距
@@ -324,6 +340,9 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
     [cellsArray enumerateObjectsUsingBlock:^(UIView *cell, NSUInteger idx, BOOL * _Nonnull stop) {
         UIView *playerView = [cell viewWithTag:self.zf_containerViewTag];
         if (!playerView) return;
+        //        if (![self isShowInAvailableZoneWithPlayerView:playerView]) {
+        //            return;
+        //        }
         CGRect rect1 = [playerView convertRect:playerView.frame toView:self];
         CGRect rect = [self convertRect:rect1 toView:self.superview];
         CGFloat topSpacing = CGRectGetMinY(rect) - CGRectGetMinY(self.frame) - CGRectGetMinY(playerView.frame) - self.contentInset.bottom;
@@ -332,7 +351,7 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
         NSIndexPath *indexPath = [self zf_getIndexPathForCell:cell];
         /// Play when the video playback section is visible.
         if ((topSpacing >= -CGRectGetHeight(rect)/2) && (bottomSpacing >= -CGRectGetHeight(rect)/2)) {
-//            if (self.zf_playingIndexPath) indexPath = self.zf_playingIndexPath;
+            //            if (self.zf_playingIndexPath) indexPath = self.zf_playingIndexPath;
             if (!finalIndexPath || centerSpacing < finalSpace) {
                 finalIndexPath = indexPath;
                 finalSpace = centerSpacing;
@@ -341,14 +360,14 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
     }];
     /// 如果找到播放的indexPath
     if (finalIndexPath) {
-        if (handler) handler(indexPath, WWANTip);
+        if (handler) handler(finalIndexPath, WWANTip);
         self.zf_shouldPlayIndexPath = finalIndexPath;
     }
 }
 
 - (void)zf_filterShouldPlayCellWhileScrolled:(ScrollViewDidStopScrollBlock)handler {
     if (!self.zf_shouldAutoPlay) return;
-//    if ([ZFReachabilityManager sharedManager].isReachableViaWWAN && !self.WWANAutoPlay) return;
+    //    if ([ZFReachabilityManager sharedManager].isReachableViaWWAN && !self.WWANAutoPlay) return;
     @weakify(self)
     [self zf_filterShouldPlayCellWhileScrolling:^(NSIndexPath * _Nonnull indexPath, BOOL WWANTip) {
         @strongify(self)
@@ -426,6 +445,10 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
     return [objc_getAssociatedObject(self, _cmd) integerValue];
 }
 
+- (CGRect)zf_containerViewFrame {
+    return [objc_getAssociatedObject(self, _cmd) CGRectValue];
+}
+
 - (ZFPlayerScrollDerection)zf_scrollDerection {
     return [objc_getAssociatedObject(self, _cmd) integerValue];
 }
@@ -464,7 +487,7 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
 - (ScrollViewDidStopScrollBlock)scrollViewDidStopScroll {
     return objc_getAssociatedObject(self, _cmd);
 }
-    
+
 - (void (^)(NSIndexPath * _Nonnull))zf_scrollViewDidStopScrollCallback {
     return objc_getAssociatedObject(self, _cmd);
 }
@@ -493,6 +516,10 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
 
 - (void)setZf_containerViewTag:(NSInteger)zf_containerViewTag {
     objc_setAssociatedObject(self, @selector(zf_containerViewTag), @(zf_containerViewTag), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (void)setZf_containerViewFrame:(CGRect)zf_containerViewFrame {
+    objc_setAssociatedObject(self, @selector(zf_containerViewFrame), [NSValue valueWithCGRect:zf_containerViewFrame], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 - (void)setZf_scrollDerection:(ZFPlayerScrollDerection)zf_scrollDerection {
@@ -538,6 +565,30 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
     objc_setAssociatedObject(self, @selector(zf_lastOffsetY), @(zf_lastOffsetY), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
+
+#pragma mark -- 扩展方法
+- (BOOL)isShowInAvailableZoneWithPlayerView:(UIView *)playerView {
+    if (CGRectIsEmpty(self.zf_containerViewFrame) || CGRectIsNull(self.zf_containerViewFrame)) {
+        return YES;
+    }
+    if (self.window == nil) {
+        return YES;
+    }
+    CGRect playerFrameInWindow = [playerView convertRect:playerView.frame toView:self.window];
+    CGRect selfFrameInWindow = [self convertRect:self.frame toView:self.window];
+    if (selfFrameInWindow.origin.y > self.zf_containerViewFrame.origin.y) {
+        selfFrameInWindow.size.height = CGRectGetMaxY(self.zf_containerViewFrame) - selfFrameInWindow.origin.y;
+        // 获取 该view与window 交叉的 Rect
+        CGRect intersectionRect = CGRectIntersection(playerFrameInWindow, selfFrameInWindow);
+        if (CGRectIsEmpty(intersectionRect) || CGRectIsNull(intersectionRect)) {
+            return NO;
+        }
+    }
+    return YES;
+}
+
+
 @end
 
 #pragma clang diagnostic pop
+

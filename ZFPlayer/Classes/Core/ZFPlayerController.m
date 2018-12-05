@@ -259,7 +259,7 @@
 @implementation ZFPlayerController (ZFPlayerPlaybackControl)
 
 - (void)stop {
-//    [self.notification removeNotification];
+    //    [self.notification removeNotification];
     [self.orientationObserver removeDeviceOrientationObserver];
     [self.currentPlayerManager stop];
     
@@ -708,16 +708,16 @@
         }
     };
     
-//    scrollView.playerDisappearHalfInScrollView = ^(NSIndexPath * _Nonnull indexPath) {
-//        @strongify(self)
-//        if (self.isFullScreen) return;
-//        if ([self.controlView respondsToSelector:@selector(playerDisappearHalfInScrollView:)]) {
-//            [self.controlView playerDisappearHalfInScrollView:self];
-//        }
-//        if (self.stopWhileNotVisible) {
-//            [self stopCurrentPlayingCell];
-//        }
-//    };
+    //    scrollView.playerDisappearHalfInScrollView = ^(NSIndexPath * _Nonnull indexPath) {
+    //        @strongify(self)
+    //        if (self.isFullScreen) return;
+    //        if ([self.controlView respondsToSelector:@selector(playerDisappearHalfInScrollView:)]) {
+    //            [self.controlView playerDisappearHalfInScrollView:self];
+    //        }
+    //        if (self.stopWhileNotVisible) {
+    //            [self stopCurrentPlayingCell];
+    //        }
+    //    };
     
     scrollView.zf_playerDidDisappearInScrollView = ^(NSIndexPath * _Nonnull indexPath) {
         @strongify(self)
@@ -872,4 +872,9 @@
     }
 }
 
+- (void)setInitContainerViewFrame:(CGRect)frame {
+    self.scrollView.zf_containerViewFrame = frame;
+}
+
 @end
+

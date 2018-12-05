@@ -57,6 +57,9 @@ typedef void(^ScrollViewDidStopScrollBlock)(NSIndexPath *indexPath, BOOL WWANTip
 /// The view tag that the player display in scrollView.
 @property (nonatomic, assign) NSInteger zf_containerViewTag;
 
+/// The view tag that the player display in scrollView.
+@property (nonatomic, assign) CGRect zf_containerViewFrame;
+
 /// Is the video playing.
 @property (nonatomic, assign, readonly, getter=zf_isPlaying) BOOL zf_playing;
 
@@ -100,3 +103,4 @@ typedef void(^ScrollViewDidStopScrollBlock)(NSIndexPath *indexPath, BOOL WWANTip
 @end
 
 NS_ASSUME_NONNULL_END
+

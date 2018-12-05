@@ -266,6 +266,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// Scroll completion callback.
 - (void)playTheIndexPath:(NSIndexPath *)indexPath scrollToTop:(BOOL)scrollToTop completionHandler:(void (^ __nullable)(void))completionHandler;
 
+- (void)setInitContainerViewFrame:(CGRect)frame;
+
 @end
 
 NS_ASSUME_NONNULL_END
+

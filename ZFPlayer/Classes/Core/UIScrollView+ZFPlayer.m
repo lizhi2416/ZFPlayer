@@ -332,7 +332,7 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
         NSIndexPath *indexPath = [self zf_getIndexPathForCell:cell];
         /// Play when the video playback section is visible.
         if ((topSpacing >= -CGRectGetHeight(rect)/2) && (bottomSpacing >= -CGRectGetHeight(rect)/2)) {
-            if (self.zf_playingIndexPath) indexPath = self.zf_playingIndexPath;
+//            if (self.zf_playingIndexPath) indexPath = self.zf_playingIndexPath;
             if (!finalIndexPath || centerSpacing < finalSpace) {
                 finalIndexPath = indexPath;
                 finalSpace = centerSpacing;
@@ -355,6 +355,11 @@ UIKIT_STATIC_INLINE void Hook_Method(Class originalClass, SEL originalSel, Class
         if (!self.zf_playingIndexPath) {
             if (handler) handler(indexPath, WWANTip);
             self.zf_playingIndexPath = indexPath;
+        }else {
+            if ([self.zf_playingIndexPath compare:indexPath] != NSOrderedSame) {
+                if (handler) handler(indexPath, WWANTip);
+                self.zf_playingIndexPath = indexPath;
+            }
         }
     }];
 }

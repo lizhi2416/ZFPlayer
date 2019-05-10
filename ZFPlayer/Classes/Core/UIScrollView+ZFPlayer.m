@@ -707,6 +707,10 @@
     return objc_getAssociatedObject(self, _cmd);
 }
 
+- (UIView *)zf_containerView {
+    return objc_getAssociatedObject(self, _cmd);
+}
+
 - (CGFloat)zf_lastOffsetY {
     return [objc_getAssociatedObject(self, _cmd) floatValue];
 }

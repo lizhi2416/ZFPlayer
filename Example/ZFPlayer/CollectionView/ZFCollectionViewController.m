@@ -23,7 +23,6 @@ static NSString * const reuseIdentifier = @"collectionViewCell";
 @property (nonatomic, strong) NSMutableArray *urls;
 @property (nonatomic, strong) ZFPlayerController *player;
 @property (nonatomic, strong) ZFPlayerControlView *controlView;
-@property (nonatomic, strong) ZFAVPlayerManager *playerManager;
 
 @end
 
@@ -31,25 +30,17 @@ static NSString * const reuseIdentifier = @"collectionViewCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-//    UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
-//    CGFloat margin = 5;
-//    CGFloat itemWidth = self.view.frame.size.width/2 - 2*margin;
-//    CGFloat itemHeight = itemWidth*9/16 + 30;
-//    layout.itemSize = CGSizeMake(itemWidth, itemHeight);
-//    layout.sectionInset = UIEdgeInsetsMake(10, margin, 10, margin);
-//    layout.minimumLineSpacing = 5;
-//    layout.minimumInteritemSpacing = 5;
-//    self.collectionView.collectionViewLayout = layout;
-//    [self.collectionView registerClass:[ZFCollectionViewCell class] forCellWithReuseIdentifier:reuseIdentifier];
     self.view.backgroundColor = [UIColor whiteColor];
     [self.view addSubview:self.collectionView];
     [self requestData];
     
     /// playerManager
-    self.playerManager = [[ZFAVPlayerManager alloc] init];
+    ZFAVPlayerManager *playerManager = [[ZFAVPlayerManager alloc] init];
+//    KSMediaPlayerManager *playerManager = [[KSMediaPlayerManager alloc] init];
+//    ZFIJKPlayerManager *playerManager = [[ZFIJKPlayerManager alloc] init];
     
-    /// player
-    self.player = [ZFPlayerController playerWithScrollView:self.collectionView playerManager:self.playerManager containerViewTag:100];
+    /// player的tag值必须在cell里设置
+    self.player = [ZFPlayerController playerWithScrollView:self.collectionView playerManager:playerManager containerViewTag:100];
     self.player.controlView = self.controlView;
     self.player.assetURLs = self.urls;
     self.player.shouldAutoPlay = YES;
@@ -103,6 +94,7 @@ static NSString * const reuseIdentifier = @"collectionViewCell";
 }
 
 - (BOOL)prefersStatusBarHidden {
+    /// 如果只是支持iOS9+ 那直接return NO即可，这里为了适配iOS8
     return self.player.isStatusBarHidden;
 }
 
@@ -138,7 +130,29 @@ static NSString * const reuseIdentifier = @"collectionViewCell";
                  fullScreenMode:ZFFullScreenModeLandscape];
 }
 
-#pragma mark <UICollectionViewDataSource>
+#pragma mark - UIScrollViewDelegate  列表播放必须实现
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    [scrollView zf_scrollViewDidEndDecelerating];
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
+    [scrollView zf_scrollViewDidEndDraggingWillDecelerate:decelerate];
+}
+
+- (void)scrollViewDidScrollToTop:(UIScrollView *)scrollView {
+    [scrollView zf_scrollViewDidScrollToTop];
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    [scrollView zf_scrollViewDidScroll];
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    [scrollView zf_scrollViewWillBeginDragging];
+}
+
+#pragma mark UICollectionViewDataSource
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
     return self.dataSource.count;
@@ -147,6 +161,11 @@ static NSString * const reuseIdentifier = @"collectionViewCell";
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     ZFCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseIdentifier forIndexPath:indexPath];
     cell.data = self.dataSource[indexPath.row];
+    @weakify(self)
+    cell.playBlock = ^(UIButton *sender) {
+        @strongify(self)
+        [self playTheVideoAtIndexPath:indexPath scrollToTop:NO];
+    };
     return cell;
 }
 

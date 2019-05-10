@@ -84,7 +84,7 @@ static ZFReachabilityStatus ZFReachabilityStatusForFlags(SCNetworkReachabilityFl
         status = ZFReachabilityStatusReachableViaWiFi;
     }
     return status;
-
+    
 }
 
 /**
@@ -216,7 +216,7 @@ static void ZFReachabilityReleaseCallback(const void *info) {
     if (!self.networkReachability) {
         return;
     }
-
+    
     __weak __typeof(self)weakSelf = self;
     ZFReachabilityStatusBlock callback = ^(ZFReachabilityStatus status) {
         __strong __typeof(weakSelf)strongSelf = weakSelf;
@@ -225,11 +225,11 @@ static void ZFReachabilityReleaseCallback(const void *info) {
             strongSelf.networkReachabilityStatusBlock(status);
         }
     };
-
+    
     SCNetworkReachabilityContext context = {0, (__bridge void *)callback, ZFReachabilityRetainCallback, ZFReachabilityReleaseCallback, NULL};
     SCNetworkReachabilitySetCallback(self.networkReachability, AFNetworkReachabilityCallback, &context);
     SCNetworkReachabilityScheduleWithRunLoop(self.networkReachability, CFRunLoopGetMain(), kCFRunLoopCommonModes);
-
+    
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0),^{
         SCNetworkReachabilityFlags flags;
         if (SCNetworkReachabilityGetFlags(self.networkReachability, &flags)) {
@@ -242,7 +242,7 @@ static void ZFReachabilityReleaseCallback(const void *info) {
     if (!self.networkReachability) {
         return;
     }
-
+    
     SCNetworkReachabilityUnscheduleFromRunLoop(self.networkReachability, CFRunLoopGetMain(), kCFRunLoopCommonModes);
 }
 

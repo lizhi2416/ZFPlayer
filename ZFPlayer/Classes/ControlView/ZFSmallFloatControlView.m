@@ -33,8 +33,8 @@
 
 @implementation ZFSmallFloatControlView
 
-- (instancetype)init {
-    self = [super init];
+- (instancetype)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
     if (self) {
         [self addSubview:self.closeBtn];
     }
@@ -54,16 +54,6 @@
     min_w = 30;
     min_h = min_w;
     self.closeBtn.frame = CGRectMake(min_x, min_y, min_w, min_h);
-}
-
-- (void)showControlView {
-    self.hidden = NO;
-    self.closeBtn.alpha = 1;
-}
-
-- (void)hideControlView {
-    self.hidden = YES;
-    self.closeBtn.alpha = 0;
 }
 
 - (void)closeBtnClick:(UIButton *)sender {

@@ -12,15 +12,19 @@
 #import <ZFPlayer/ZFIJKPlayerManager.h>
 #import <ZFPlayer/KSMediaPlayerManager.h>
 #import <ZFPlayer/ZFPlayerControlView.h>
+#import "ZFSmallPlayViewController.h"
+#import "UIImageView+ZFCache.h"
+#import "ZFUtilities.h"
+
+static NSString *kVideoCover = @"https://upload-images.jianshu.io/upload_images/635942-14593722fe3f0695.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240";
 
 @interface ZFNoramlViewController ()
 @property (nonatomic, strong) ZFPlayerController *player;
-@property (nonatomic, strong) UIView *containerView;
+@property (nonatomic, strong) UIImageView *containerView;
 @property (nonatomic, strong) ZFPlayerControlView *controlView;
 @property (nonatomic, strong) UIButton *playBtn;
 @property (nonatomic, strong) UIButton *changeBtn;
 @property (nonatomic, strong) UIButton *nextBtn;
-
 @property (nonatomic, strong) NSArray <NSURL *>*assetURLs;
 
 @end
@@ -31,36 +35,55 @@
     [super viewDidLoad];
 
     self.view.backgroundColor = [UIColor whiteColor];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Push" style:UIBarButtonItemStylePlain target:self action:@selector(pushNewVC)];
     [self.view addSubview:self.containerView];
+    
     [self.containerView addSubview:self.playBtn];
     [self.view addSubview:self.changeBtn];
     [self.view addSubview:self.nextBtn];
-
+    
     ZFAVPlayerManager *playerManager = [[ZFAVPlayerManager alloc] init];
 //    KSMediaPlayerManager *playerManager = [[KSMediaPlayerManager alloc] init];
 //    ZFIJKPlayerManager *playerManager = [[ZFIJKPlayerManager alloc] init];
+    
     /// 播放器相关
     self.player = [ZFPlayerController playerWithPlayerManager:playerManager containerView:self.containerView];
     self.player.controlView = self.controlView;
+    /// 设置退到后台继续播放
+    self.player.pauseWhenAppResignActive = NO;
+    
     @weakify(self)
     self.player.orientationWillChange = ^(ZFPlayerController * _Nonnull player, BOOL isFullScreen) {
         @strongify(self)
         [self setNeedsStatusBarAppearanceUpdate];
     };
+    
+    /// 播放完成
     self.player.playerDidToEnd = ^(id  _Nonnull asset) {
         @strongify(self)
-        if (self.player.isFullScreen) {
-            [self.player enterFullScreen:NO animated:YES];
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(self.player.orientationObserver.duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [self.player stop];
-            });
+        [self.player.currentPlayerManager replay];
+        [self.player playTheNext];
+        if (!self.player.isLastAssetURL) {
+            NSString *title = [NSString stringWithFormat:@"视频标题%zd",self.player.currentPlayIndex];
+            [self.controlView showTitle:title coverURLString:kVideoCover fullScreenMode:ZFFullScreenModeLandscape];
         } else {
             [self.player stop];
         }
     };
     
-    self.assetURLs = @[[NSURL URLWithString:@"http://tb-video.bdstatic.com/tieba-smallvideo/45_a68a54ff67c9db5bb05748e14c600a3b.mp4"],
-                       [NSURL URLWithString:@"http://tb-video.bdstatic.com/videocp/16514218_b3883a9f1e041a181bda58804e0a5192.mp4"],
+    self.player.customAudioSession = YES;
+    self.player.playerReadyToPlay = ^(id<ZFPlayerMediaPlayback>  _Nonnull asset, NSURL * _Nonnull assetURL) {
+        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:AVAudioSessionCategoryOptionAllowBluetooth error:nil];
+        [[AVAudioSession sharedInstance] setActive:YES error:nil];
+    };
+    
+    self.assetURLs = @[[NSURL URLWithString:@"https://www.apple.com/105/media/us/iphone-x/2017/01df5b43-28e4-4848-bf20-490c34a926a7/films/feature/iphone-x-feature-tpl-cc-us-20170912_1280x720h.mp4"],
+                       [NSURL URLWithString:@"https://www.apple.com/105/media/cn/mac/family/2018/46c4b917_abfd_45a3_9b51_4e3054191797/films/bruce/mac-bruce-tpl-cn-2018_1280x720h.mp4"],
+                       [NSURL URLWithString:@"https://www.apple.com/105/media/us/mac/family/2018/46c4b917_abfd_45a3_9b51_4e3054191797/films/peter/mac-peter-tpl-cc-us-2018_1280x720h.mp4"],
+                       [NSURL URLWithString:@"https://www.apple.com/105/media/us/mac/family/2018/46c4b917_abfd_45a3_9b51_4e3054191797/films/grimes/mac-grimes-tpl-cc-us-2018_1280x720h.mp4"],
+                       [NSURL URLWithString:@"http://flv3.bn.netease.com/tvmrepo/2018/6/H/9/EDJTRBEH9/SD/EDJTRBEH9-mobile.mp4"],
+                       [NSURL URLWithString:@"http://flv3.bn.netease.com/tvmrepo/2018/6/9/R/EDJTRAD9R/SD/EDJTRAD9R-mobile.mp4"],
+                       [NSURL URLWithString:@"http://www.flashls.org/playlists/test_001/stream_1000k_48k_640x360.m3u8"],
                        [NSURL URLWithString:@"http://tb-video.bdstatic.com/tieba-video/7_517c8948b166655ad5cfb563cc7fbd8e.mp4"],
                        [NSURL URLWithString:@"http://tb-video.bdstatic.com/tieba-smallvideo/68_20df3a646ab5357464cd819ea987763a.mp4"],
                        [NSURL URLWithString:@"http://tb-video.bdstatic.com/tieba-smallvideo/118_570ed13707b2ccee1057099185b115bf.mp4"],
@@ -70,6 +93,16 @@
                        [NSURL URLWithString:@"http://tb-video.bdstatic.com/tieba-movideo/11233547_ac127ce9e993877dce0eebceaa04d6c2_593d93a619b0.mp4"]];
     
     self.player.assetURLs = self.assetURLs;
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    self.player.viewControllerDisappear = NO;
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    self.player.viewControllerDisappear = YES;
 }
 
 - (void)viewWillLayoutSubviews {
@@ -100,24 +133,29 @@
 }
 
 - (void)changeVideo:(UIButton *)sender {
-    NSString *URLString = @"https://ylmtst.yejingying.com/asset/video/20180525184959_mW8WVQVd.mp4";
+    NSString *URLString = @"https://www.apple.com/105/media/cn/mac/family/2018/46c4b917_abfd_45a3_9b51_4e3054191797/films/bruce/mac-bruce-tpl-cn-2018_1280x720h.mp4";
     self.player.assetURL = [NSURL URLWithString:URLString];
-    [self.controlView showTitle:@"抖音" coverURLString:@"http://imgsrc.baidu.com/forum/eWH%3D240%2C176/sign=183252ee8bd6277ffb784f351a0c2f1c/5d6034a85edf8db15420ba310523dd54564e745d.jpg" fullScreenMode:ZFFullScreenModePortrait];
+    [self.controlView showTitle:@"Apple" coverURLString:kVideoCover fullScreenMode:ZFFullScreenModeAutomatic];
 }
 
 - (void)playClick:(UIButton *)sender {
     [self.player playTheIndex:0];
-    [self.controlView showTitle:@"视频标题" coverURLString:@"http://imgsrc.baidu.com/forum/eWH%3D240%2C176/sign=183252ee8bd6277ffb784f351a0c2f1c/5d6034a85edf8db15420ba310523dd54564e745d.jpg" fullScreenMode:ZFFullScreenModeLandscape];
+    [self.controlView showTitle:@"视频标题" coverURLString:kVideoCover fullScreenMode:ZFFullScreenModeAutomatic];
 }
 
 - (void)nextClick:(UIButton *)sender {
-    [self.player playTheNext];
     if (!self.player.isLastAssetURL) {
+        [self.player playTheNext];
         NSString *title = [NSString stringWithFormat:@"视频标题%zd",self.player.currentPlayIndex];
-        [self.controlView showTitle:title coverURLString:@"http://imgsrc.baidu.com/forum/eWH%3D240%2C176/sign=183252ee8bd6277ffb784f351a0c2f1c/5d6034a85edf8db15420ba310523dd54564e745d.jpg" fullScreenMode:ZFFullScreenModeLandscape];
+        [self.controlView showTitle:title coverURLString:kVideoCover fullScreenMode:ZFFullScreenModeAutomatic];
     } else {
         NSLog(@"最后一个视频了");
     }
+}
+
+- (void)pushNewVC {
+    ZFSmallPlayViewController *vc = [[ZFSmallPlayViewController alloc] init];
+    [self.navigationController pushViewController:vc animated:YES];
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
@@ -128,6 +166,7 @@
 }
 
 - (BOOL)prefersStatusBarHidden {
+    /// 如果只是支持iOS9+ 那直接return NO即可，这里为了适配iOS8
     return self.player.isStatusBarHidden;
 }
 
@@ -136,31 +175,31 @@
 }
 
 - (BOOL)shouldAutorotate {
-    return NO;
+    return self.player.shouldAutorotate;
 }
-
-- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    [self.view endEditing:YES];
-    self.player.currentPlayerManager.muted = !self.player.currentPlayerManager.muted;
-}
-
-#pragma mark - about keyboard orientation
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-    return UIInterfaceOrientationMaskAllButUpsideDown;
+    if (self.player.isFullScreen) {
+        return UIInterfaceOrientationMaskLandscape;
+    }
+    return UIInterfaceOrientationMaskPortrait;
 }
 
 - (ZFPlayerControlView *)controlView {
     if (!_controlView) {
         _controlView = [ZFPlayerControlView new];
+        _controlView.fastViewAnimated = YES;
+        _controlView.autoHiddenTimeInterval = 5;
+        _controlView.autoFadeTimeInterval = 0.5;
+        _controlView.prepareShowLoading = YES;
     }
     return _controlView;
 }
 
-- (UIView *)containerView {
+- (UIImageView *)containerView {
     if (!_containerView) {
-        _containerView = [UIView new];
-        _containerView.backgroundColor = [UIColor orangeColor];
+        _containerView = [UIImageView new];
+        [_containerView setImageWithURLString:kVideoCover placeholder:[ZFUtilities imageWithColor:[UIColor colorWithRed:220/255.0 green:220/255.0 blue:220/255.0 alpha:1] size:CGSizeMake(1, 1)]];
     }
     return _containerView;
 }

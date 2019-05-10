@@ -1,5 +1,6 @@
 //
-//  UIViewController+ZFPlayerRotation.h
+//  ZFPlayerLogManager.h
+//  ZFPlayer
 //
 // Copyright (c) 2016年 任子丰 ( http://github.com/renzifeng )
 //
@@ -21,12 +22,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#define ZFPlayerLog(format,...)  [ZFPlayerLogManager logWithFunction:__FUNCTION__ lineNumber:__LINE__ formatString:[NSString stringWithFormat:format, ##__VA_ARGS__]]
+
+#import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-@interface UITabBarController (ZFPlayerRotation)
+@interface ZFPlayerLogManager : NSObject
 
-@end
+// Set the log output status.
++ (void)setLogEnable:(BOOL)enable;
 
-@interface UINavigationController (ZFPlayerRotation)
+// Gets the log output status.
++ (BOOL)getLogEnable;
+
+/// Get ZFPlayer version.
++ (NSString *)version;
+
+// Log output method.
++ (void)logWithFunction:(const char *)function lineNumber:(int)lineNumber formatString:(NSString *)formatString;
 
 @end

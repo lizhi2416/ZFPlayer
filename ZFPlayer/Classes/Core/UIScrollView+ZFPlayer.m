@@ -550,26 +550,17 @@
     @weakify(self)
     [self zf_filterShouldPlayCellWhileScrolling:^(NSIndexPath * _Nonnull indexPath, BOOL WWANTip) {
         @strongify(self)
-//<<<<<<< HEAD
-//        if (!self.zf_playingIndexPath) {
-//            if (handler) handler(indexPath, WWANTip);
-//            self.zf_playingIndexPath = indexPath;
-//        }else {
-//            if ([self.zf_playingIndexPath compare:indexPath] != NSOrderedSame) {
-//                if (handler) handler(indexPath, WWANTip);
-//                self.zf_playingIndexPath = indexPath;
-//            }
-//=======
-        /// 如果当前控制器已经消失，直接return
+        // 如果当前控制器已经消失，直接return
         if (self.zf_viewControllerDisappear) return;
-//        if ([ZFReachabilityManager sharedManager].isReachableViaWWAN && !self.zf_WWANAutoPlay) {
-//            /// 移动网络
-//            self.zf_shouldPlayIndexPath = indexPath;
-//            return;
-////>>>>>>> upstream/master
-//        }
-        if (handler) handler(indexPath, WWANTip);
-        self.zf_playingIndexPath = indexPath;
+        if (!self.zf_playingIndexPath) {
+            if (handler) handler(indexPath, WWANTip);
+            self.zf_playingIndexPath = indexPath;
+        }else {
+            if ([self.zf_playingIndexPath compare:indexPath] != NSOrderedSame) {
+                if (handler) handler(indexPath, WWANTip);
+                self.zf_playingIndexPath = indexPath;
+            }
+        }
     }];
 }
 
